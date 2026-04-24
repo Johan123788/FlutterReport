@@ -73,6 +73,38 @@ class _CrearReportePageState extends State<CrearReportePage> {
     setState(() {});
   }
 
+  Future<Position?> obtenerUbicacion() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Verificar si el GPS está activo
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Activa el GPS")));
+      return null;
+    }
+
+    // Verificar permisos
+    permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Permisos de ubicación denegados")),
+      );
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
   Future<void> analizarIA() async {
     // 1. VALIDACIÓN: si el usuario no escribió nada, no se puede analizar
     if (descripcionController.text.trim().isEmpty) {
@@ -173,10 +205,12 @@ class _CrearReportePageState extends State<CrearReportePage> {
     try {
       setState(() => cargando = true);
 
-      Position posicion = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      final posicion = await obtenerUbicacion();
 
+      if (posicion == null) {
+        setState(() => cargando = false);
+        return;
+      }
       final evidenciaUrl = await CloudinaryService().uploadImage(imagen!);
 
       if (evidenciaUrl == null || evidenciaUrl.isEmpty) {
@@ -234,103 +268,174 @@ class _CrearReportePageState extends State<CrearReportePage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Bienvenido ${widget.nombreUsuario}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Crear reporte",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 5),
 
-            TextField(
-              controller: descripcionController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: "Descripción",
-                border: OutlineInputBorder(),
+            Text(
+              "Describe el problema y nosotros te ayudamos",
+              style: TextStyle(color: Colors.grey),
+            ),
+
+            const SizedBox(height: 25),
+
+            // 🧠 DESCRIPCIÓN + IA
+            _card(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: descripcionController,
+                    maxLines: 3,
+                    decoration: _inputStyle("Describe el problema"),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  ElevatedButton.icon(
+                    onPressed: cargando ? null : analizarIA,
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text("Mejorar con IA"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2D6CDF),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
-            ElevatedButton.icon(
-              onPressed: cargando ? null : analizarIA,
-              icon: const Icon(Icons.smart_toy),
-              label: const Text("Analizar con IA"),
+            // 💬 COMENTARIO
+            _card(
+              child: TextField(
+                controller: comentarioController,
+                maxLines: 2,
+                decoration: _inputStyle("Comentario adicional"),
+              ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
 
-            TextField(
-              controller: comentarioController,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: "Comentario",
-                border: OutlineInputBorder(),
+            // 📂 CATEGORÍA Y AUTORIDAD
+            _card(
+              child: Column(
+                children: [
+                  DropdownButtonFormField<int>(
+                    value: categoriaId,
+                    decoration: _inputStyle("Categoría"),
+                    items: categorias.map((c) {
+                      return DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.nombre),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => categoriaId = value);
+                    },
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  DropdownButtonFormField<int>(
+                    value: autoridadId,
+                    decoration: _inputStyle("Autoridad"),
+                    items: autoridades.map((a) {
+                      return DropdownMenuItem(
+                        value: a.id,
+                        child: Text(a.nombre),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => autoridadId = value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // 📸 IMAGEN
+            _card(
+              child: Column(
+                children: [
+                  if (imagen != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        imagen!,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+
+                  const SizedBox(height: 10),
+
+                  OutlinedButton.icon(
+                    onPressed: seleccionarImagen,
+                    icon: const Icon(Icons.image),
+                    label: const Text("Agregar imagen"),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // 🚀 BOTÓN FINAL
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: cargando ? null : guardarReporte,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2D6CDF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: cargando
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Enviar reporte"),
               ),
             ),
 
             const SizedBox(height: 20),
-
-            DropdownButtonFormField<int>(
-              value: categoriaId,
-              decoration: const InputDecoration(
-                labelText: "Categoría",
-                border: OutlineInputBorder(),
-              ),
-              items: categorias.map((c) {
-                return DropdownMenuItem(value: c.id, child: Text(c.nombre));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  categoriaId = value;
-                });
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            DropdownButtonFormField<int>(
-              value: autoridadId,
-              decoration: const InputDecoration(
-                labelText: "Autoridad",
-                border: OutlineInputBorder(),
-              ),
-              items: autoridades.map((a) {
-                return DropdownMenuItem(value: a.id, child: Text(a.nombre));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  autoridadId = value;
-                });
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            if (imagen != null)
-              Image.file(imagen!, height: 180, fit: BoxFit.cover),
-
-            const SizedBox(height: 10),
-
-            ElevatedButton.icon(
-              onPressed: seleccionarImagen,
-              icon: const Icon(Icons.image),
-              label: const Text("Seleccionar Imagen"),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: cargando ? null : guardarReporte,
-              child: cargando
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Guardar Reporte"),
-            ),
           ],
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputStyle(String placeholder) {
+    return InputDecoration(
+      hintText: placeholder,
+      filled: true,
+      fillColor: const Color(0xFFF9F9F9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  Widget _card({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
+        ],
+      ),
+      child: child,
     );
   }
 }

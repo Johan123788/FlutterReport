@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:ojociudadano/models/categoria.dart';
 
 class CategoriaService {
-  final String baseURL = "https://localhost:7230/api/Categoria";
+  final String baseURL = "http://192.168.1.121:5148/api/Categoria";
 
 Future<List<Categoria>> obtenerCategorias() async {
 

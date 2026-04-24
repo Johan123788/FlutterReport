@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ojociudadano/models/reporte.dart';
 
 class ReporteService {
-  final String baseUrl = "https://localhost:7230/api/Reporte";
+  final String baseUrl = "http://192.168.1.121:5148/api/Reporte";
 
   Future<Reporte?> agregarReporte(
     String descripcion,

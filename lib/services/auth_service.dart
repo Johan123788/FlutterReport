@@ -6,7 +6,7 @@ import 'package:ojociudadano/models/usuario.dart';
 class AuthService {
   Future<Usuario?> login(String correo, String password) async {
     try {
-      final url = Uri.parse("https://localhost:7230/api/Usuarios/login");
+      final url = Uri.parse("http://192.168.1.121:5148/api/Usuarios/login");
 
       final response = await http.post(
         url,

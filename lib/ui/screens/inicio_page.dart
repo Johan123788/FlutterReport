@@ -15,68 +15,150 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF2F2F2),
 
-      appBar: AppBar(title: const Text("Ojo Ciudadano"), centerTitle: true),
+      // 🔵 HEADER
+      appBar: AppBar(
+        title: const Text("ReportVial"),
+        backgroundColor: const Color(0xFF2D6CDF),
+        elevation: 0,
+      ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
 
-            Text(
-              "Bienvenido 👋",
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 5),
-
-            Text(
-              nombreUsuario,
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-
-            const SizedBox(height: 40),
-
-            // 🔵 CREAR REPORTE
-            _buildOptionCard(
-              context,
-              title: "Crear Reporte",
-              subtitle: "Registra una nueva denuncia o incidente",
-              icon: Icons.add_circle,
-              color: Colors.blue,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CrearReportePage(
-                      usuarioId: usuarioId,
-                      nombreUsuario: nombreUsuario,
-                    ),
+            // 🔵 BOTONES PRINCIPALES
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _mainButton(
+                    icon: Icons.camera_alt,
+                    text: "Crear Reporte",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CrearReportePage(
+                            usuarioId: usuarioId,
+                            nombreUsuario: nombreUsuario,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+
+                  const SizedBox(height: 15),
+
+                  _mainButton(
+                    icon: Icons.list,
+                    text: "Ver Reportes",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              MisReportesPage(usuarioId: usuarioId),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  _mainButton(
+                    icon: Icons.location_on,
+                    text: "Ver Mapa",
+                    onTap: () {
+                      // luego lo implementas
+                    },
+                  ),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 20),
+            // 📌 TITULO
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "Reportes recientes",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
 
-            // 🟢 MIS REPORTES
-            _buildOptionCard(
-              context,
-              title: "Mis Reportes",
-              subtitle: "Consulta el estado de tus reportes",
-              icon: Icons.list_alt,
+            const SizedBox(height: 10),
+
+            // 🧾 LISTA DE REPORTES
+            _reporteCard(
+              titulo: "Hueco en la vía",
+              ciudad: "Valledupar",
+              estado: "Pendiente",
+              color: Colors.red,
+              icon: Icons.warning,
+            ),
+
+            _reporteCard(
+              titulo: "Reductor dañado",
+              ciudad: "Valledupar",
+              estado: "En proceso",
+              color: Colors.orange,
+              icon: Icons.build,
+            ),
+
+            _reporteCard(
+              titulo: "Señalización caída",
+              ciudad: "Valledupar",
+              estado: "Solucionado",
               color: Colors.green,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MisReportesPage(usuarioId: usuarioId),
-                  ),
-                );
-              },
+              icon: Icons.check_circle,
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+
+      // 🔻 NAV BAR
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: const Color(0xFF2D6CDF),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.storage), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.location_on), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
+        ],
+      ),
+    );
+  }
+
+  // 🔵 BOTONES GRANDES
+  Widget _mainButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2D6CDF),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
           ],
         ),
@@ -84,57 +166,65 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
+  // 🧾 CARD DE REPORTE
+  Widget _reporteCard({
+    required String titulo,
+    required String ciudad,
+    required String estado,
     required Color color,
-    required VoidCallback onTap,
+    required IconData icon,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withOpacity(0.2),
-              child: Icon(icon, color: color),
-            ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 30),
 
-            const SizedBox(width: 15),
+          const SizedBox(width: 15),
 
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey)),
-                ],
-              ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  ciudad,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ],
             ),
+          ),
 
-            const Icon(Icons.arrow_forward_ios, size: 18),
-          ],
-        ),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              estado,
+              style: const TextStyle(color: Colors.white),
+            ),
+          )
+        ],
       ),
     );
   }

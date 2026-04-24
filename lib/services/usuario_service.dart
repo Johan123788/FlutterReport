@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:ojociudadano/models/usuario.dart';
 
 class UsuarioService {
-  final String baseUrl = "https://localhost:7230/api/Usuarios";
+  final String baseUrl = "http://192.168.1.121:5148/api/Usuarios";
 
   // REGISTRO
   Future<Usuario?> registrar(

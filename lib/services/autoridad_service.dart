@@ -5,7 +5,7 @@ import 'package:ojociudadano/models/autoridad.dart';
 class AutoridadService {
 
   final String baseUrl =
-      "https://localhost:7230/api/Autoridad";
+      "http://192.168.1.121:5148/api/Autoridad";
 
   Future<List<Autoridad>>
       obtenerAutoridades() async {
