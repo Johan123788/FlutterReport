@@ -1,13 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-
+<!-- Agregar permisos geolocaletor -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<!-- Agregar permisos para la cámara y almacenamiento -->   
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     
     <application
         android:label="ojociudadano"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"
+        >
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -132,7 +132,7 @@ class _MisReportesPageState extends State<MisReportesPage> {
   );
 }
 
-  // 🧾 CARD MEJORADA
+  //  CARD MEJORADA
   Widget _buildReporteCard(Reporte r) {
     Color estadoColor;
     IconData icono;

@@ -26,6 +26,11 @@ class ReporteController {
   );
 }
 
+
+ Future<void> cambiarEstado(int reporteId, String estado) async {
+    await _service.cambiarEstadoReporte(reporteId, estado);
+  }
+
   Future<List<Reporte>> obtenerReportesPorUsuario(int usuarioId) async {
     return await _service.obtenerReportesPorUsuario(usuarioId);
   }

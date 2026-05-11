@@ -61,16 +61,19 @@ class _CrearReportePageState extends State<CrearReportePage> {
     setState(() {});
   }
 
-  Future<void> seleccionarImagen() async {
+  Future<void> seleccionarImagen(ImageSource source) async {
     final picker = ImagePicker();
 
-    final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? photo = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+    );
 
     if (photo == null) return;
 
-    imagen = File(photo.path);
-
-    setState(() {});
+    setState(() {
+      imagen = File(photo.path);
+    });
   }
 
   Future<Position?> obtenerUbicacion() async {
@@ -166,7 +169,7 @@ class _CrearReportePageState extends State<CrearReportePage> {
       // Se busca en la lista de autoridades de la BD
       final autoridadEncontrada = autoridades.firstWhere(
         (a) => a.nombre.toLowerCase() == autoridadDetectada,
-        orElse: () => Autoridad(id: 0, nombre: ""),
+        orElse: () => Autoridad(id: 0, nombre: "", correo: ""),
       );
 
       // Si existe coincidencia, guardamos el ID real
@@ -298,8 +301,8 @@ class _CrearReportePageState extends State<CrearReportePage> {
 
                   ElevatedButton.icon(
                     onPressed: cargando ? null : analizarIA,
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text("Mejorar con IA"),
+                    icon: const Icon(Icons.auto_awesome, color: Colors.white),
+                    label: const Text("Mejorar con IA", style: TextStyle(color: Colors.white),),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2D6CDF),
                     ),
@@ -360,6 +363,7 @@ class _CrearReportePageState extends State<CrearReportePage> {
 
             const SizedBox(height: 15),
 
+            // IMAGEN
             // 📸 IMAGEN
             _card(
               child: Column(
@@ -377,10 +381,28 @@ class _CrearReportePageState extends State<CrearReportePage> {
 
                   const SizedBox(height: 10),
 
-                  OutlinedButton.icon(
-                    onPressed: seleccionarImagen,
-                    icon: const Icon(Icons.image),
-                    label: const Text("Agregar imagen"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => seleccionarImagen(ImageSource.camera),
+                        icon: const Icon(Icons.camera_alt, color: Colors.white),
+                        label: const Text("Cámara", style: TextStyle(color: Colors.white),),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2D6CDF),
+                        ),
+                      ),
+
+                      ElevatedButton.icon(
+                        onPressed: () => seleccionarImagen(ImageSource.gallery),
+                        icon: const Icon(Icons.image, 
+                        color: Colors.white),
+                        label: const Text("Galería", style: TextStyle(color: Colors.white),),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2D6CDF),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
