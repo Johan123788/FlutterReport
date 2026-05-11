@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ojociudadano/ui/screens/mis_reportes_page.dart';
-import 'package:ojociudadano/ui/screens/reporte_page.dart';
+import 'package:ojociudadano/ui/screens/Usuario/mis_reportes_page.dart';
+import 'package:ojociudadano/ui/screens/Usuario/notificacion_page.dart';
+import 'package:ojociudadano/ui/screens/Usuario/reporte_page.dart';   
 
 class HomePage extends StatelessWidget {
   final int usuarioId;
@@ -22,6 +23,40 @@ class HomePage extends StatelessWidget {
         title: const Text("ReportVial"),
         backgroundColor: const Color(0xFF2D6CDF),
         elevation: 0,
+
+        // 🔔 CAMPANITA
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          NotificacionesPage(usuarioId: usuarioId),
+                    ),
+                  );
+                },
+              ),
+
+              // 🔴 PUNTO ROJO (puedes quitarlo si quieres)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ],
       ),
 
       body: SingleChildScrollView(
@@ -29,7 +64,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // 🔵 BOTONES PRINCIPALES
+            // 🔘 BOTONES PRINCIPALES
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -72,7 +107,7 @@ class HomePage extends StatelessWidget {
                     icon: Icons.location_on,
                     text: "Ver Mapa",
                     onTap: () {
-                      // luego lo implementas
+                      // pendiente
                     },
                   ),
                 ],
@@ -93,7 +128,7 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // 🧾 LISTA DE REPORTES
+            // 🧾 EJEMPLOS (puedes luego traerlos del backend)
             _reporteCard(
               titulo: "Hueco en la vía",
               ciudad: "Valledupar",
@@ -137,7 +172,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 🔵 BOTONES GRANDES
+  // 🔘 BOTONES GRANDES
   Widget _mainButton({
     required IconData icon,
     required String text,
@@ -190,7 +225,6 @@ class HomePage extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, color: color, size: 30),
-
           const SizedBox(width: 15),
 
           Expanded(

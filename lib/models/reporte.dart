@@ -1,14 +1,16 @@
-import 'package:ojociudadano/models/categoria.dart';
 import 'package:ojociudadano/models/autoridad.dart';
+import 'package:ojociudadano/models/categoria.dart';
 
 class Reporte {
+
+  final int id;
   final String descripcion;
   final String estado;
   final String comentario;
   final String evidencia;
 
-  final Categoria categoria;
-  final Autoridad autoridadResponsable;
+  final Categoria? categoria; //  nullable
+  final Autoridad? autoridadResponsable; //  nullable
 
   final double latitud;
   final double longitud;
@@ -16,6 +18,7 @@ class Reporte {
   final DateTime fecha;
 
   Reporte({
+    required this.id,
     required this.descripcion,
     required this.estado,
     required this.comentario,
@@ -29,17 +32,24 @@ class Reporte {
 
   factory Reporte.fromJson(Map<String, dynamic> json) {
     return Reporte(
-      descripcion: json["descripcion"],
-      estado: json["estado"],
-      comentario: json["comentario"],
-      evidencia: json["evidencia"],
+      id: json["id"] ?? json["Id"] ?? 0,
+      descripcion: json["descripcion"] ?? "",
+      estado: json["estado"] ?? "",
+      comentario: json["comentario"] ?? "",
+      evidencia: json["evidencia"] ?? "",
       fecha: DateTime.parse(json["fecha"]),
 
       latitud: (json["latitud"] as num).toDouble(),
       longitud: (json["longitud"] as num).toDouble(),
 
-      categoria: Categoria.fromJson(json["categoria"]),
-      autoridadResponsable: Autoridad.fromJson(json["autoridadResponsable"]),
+      // 🔥 CLAVE
+      categoria: json["categoria"] != null
+          ? Categoria.fromJson(json["categoria"])
+          : null,
+
+      autoridadResponsable: json["autoridadResponsable"] != null
+          ? Autoridad.fromJson(json["autoridadResponsable"])
+          : null,
     );
   }
 }

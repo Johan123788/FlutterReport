@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ojociudadano/models/reporte.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ReporteService {
-  final String baseUrl = "http://192.168.1.121:5148/api/Reporte";
+  //final String baseUrl = "http://192.168.137.75:5148/api/Reporte";
+  final String baseUrl = "https://localhost:7230/api/Reporte";
 
   Future<Reporte?> agregarReporte(
     String descripcion,
@@ -73,10 +75,22 @@ class ReporteService {
   }
 
 
+  Future<void> cambiarEstadoReporte(
+    int reporteId, String nuevoEstado) async {
 
+  final response = await http.put(
+    Uri.parse("$baseUrl/cambiar-estado/$reporteId"),
+    headers: {"Content-Type": "application/json"},
+    body: '"$nuevoEstado"',
+  );
 
+  print("STATUS: ${response.statusCode}");
+  print("BODY: ${response.body}");
 
-
+  if (response.statusCode != 200) {
+    throw Exception("Error al cambiar estado: ${response.body}");
+  }
+}
 
   
 }
