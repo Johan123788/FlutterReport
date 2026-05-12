@@ -35,7 +35,7 @@ Future<Autoridad?> login(String correo, String password) async {
 
 
   final String baseUrl =
-      "http://192.168.137.75:5148/api/Autoridad";
+      "https://localhost:7230/api/Autoridad";
 
 
       Future<List<Reporte>> ObtenerListadoReportesPorAutoridad(int autoridadId) async {
