@@ -2,15 +2,15 @@ import 'package:ojociudadano/models/autoridad.dart';
 import 'package:ojociudadano/models/categoria.dart';
 
 class Reporte {
-
   final int id;
   final String descripcion;
   final String estado;
   final String comentario;
   final String evidencia;
 
-  final Categoria? categoria; //  nullable
-  final Autoridad? autoridadResponsable; //  nullable
+  final int? usuarioId; // ← ID del ciudadano que reportó
+  final Categoria? categoria;
+  final Autoridad? autoridadResponsable;
 
   final double latitud;
   final double longitud;
@@ -23,6 +23,7 @@ class Reporte {
     required this.estado,
     required this.comentario,
     required this.evidencia,
+    this.usuarioId,
     required this.categoria,
     required this.autoridadResponsable,
     required this.latitud,
@@ -37,12 +38,12 @@ class Reporte {
       estado: json["estado"] ?? "",
       comentario: json["comentario"] ?? "",
       evidencia: json["evidencia"] ?? "",
+      usuarioId: json["usuarioId"] ?? json["UsuarioId"],
       fecha: DateTime.parse(json["fecha"]),
 
       latitud: (json["latitud"] as num).toDouble(),
       longitud: (json["longitud"] as num).toDouble(),
 
-      // 🔥 CLAVE
       categoria: json["categoria"] != null
           ? Categoria.fromJson(json["categoria"])
           : null,

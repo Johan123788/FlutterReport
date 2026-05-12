@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:ojociudadano/controllers/notificacion_controller.dart';
+import 'package:ojociudadano/controllers/reporte_controller.dart';
+import 'package:ojociudadano/models/reporte.dart';
 import 'package:ojociudadano/ui/screens/Usuario/mis_reportes_page.dart';
 import 'package:ojociudadano/ui/screens/Usuario/notificacion_page.dart';
-import 'package:ojociudadano/ui/screens/Usuario/reporte_page.dart';   
+import 'package:ojociudadano/ui/screens/Usuario/reporte_page.dart';
+import 'package:ojociudadano/ui/screens/Usuario/user_theme.dart';
+import 'package:ojociudadano/ui/screens/login_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final int usuarioId;
   final String nombreUsuario;
 
@@ -14,250 +19,460 @@ class HomePage extends StatelessWidget {
   });
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final NotificacionController _notifController = NotificacionController();
+  final ReporteController _reporteController = ReporteController();
+
+  int _cantidadNotificaciones = 0;
+  List<Reporte> _reportesRecientes = [];
+  bool _cargandoReportes = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCantidadNotificaciones();
+    _cargarReportesRecientes();
+  }
+
+  Future<void> _cargarCantidadNotificaciones() async {
+    try {
+      final cantidad =
+          await _notifController.obtenerCantidadNoLeidas(widget.usuarioId);
+      if (mounted) setState(() => _cantidadNotificaciones = cantidad);
+    } catch (_) {}
+  }
+
+  Future<void> _cargarReportesRecientes() async {
+    try {
+      final lista =
+          await _reporteController.obtenerReportesPorUsuario(widget.usuarioId);
+      if (mounted) {
+        setState(() {
+          _reportesRecientes = lista.take(3).toList();
+          _cargandoReportes = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _cargandoReportes = false);
+    }
+  }
+
+  void _confirmarLogout() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: UserTheme.bgCard,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Cerrar sesión',
+          style: TextStyle(
+              color: UserTheme.textPrimary, fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          '¿Estás seguro que deseas salir?',
+          style: TextStyle(color: UserTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+                foregroundColor: UserTheme.textSecondary),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: UserTheme.danger,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
-
-      // 🔵 HEADER
+      backgroundColor: UserTheme.bgPrimary,
       appBar: AppBar(
-        title: const Text("ReportVial"),
-        backgroundColor: const Color(0xFF2D6CDF),
+        backgroundColor: UserTheme.bgCard,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-
-        // 🔔 CAMPANITA
+        title: const Text(
+          'OjoCiudadano',
+          style: TextStyle(
+            color: UserTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
         actions: [
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications),
-                onPressed: () {
-                  Navigator.push(
+                icon: const Icon(Icons.notifications_rounded,
+                    color: UserTheme.accentLight),
+                onPressed: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) =>
-                          NotificacionesPage(usuarioId: usuarioId),
+                          NotificacionesPage(usuarioId: widget.usuarioId),
+                    ),
+                  );
+                  _cargarCantidadNotificaciones();
+                },
+              ),
+              if (_cantidadNotificaciones > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: UserTheme.danger,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints:
+                        const BoxConstraints(minWidth: 18, minHeight: 18),
+                    child: Text(
+                      _cantidadNotificaciones > 99
+                          ? '99+'
+                          : '$_cantidadNotificaciones',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded,
+                color: UserTheme.textSecondary),
+            tooltip: 'Cerrar sesión',
+            onPressed: _confirmarLogout,
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        color: UserTheme.accent,
+        backgroundColor: UserTheme.bgCard,
+        onRefresh: () async {
+          await Future.wait([
+            _cargarCantidadNotificaciones(),
+            _cargarReportesRecientes(),
+          ]);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hola, ${widget.nombreUsuario} 👋',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: UserTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                '¿Qué quieres reportar hoy?',
+                style:
+                    TextStyle(color: UserTheme.textSecondary, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              _mainButton(
+                icon: Icons.camera_alt_rounded,
+                text: 'Crear Reporte',
+                color: UserTheme.accent,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CrearReportePage(
+                        usuarioId: widget.usuarioId,
+                        nombreUsuario: widget.nombreUsuario,
+                      ),
+                    ),
+                  );
+                  _cargarReportesRecientes();
+                },
+              ),
+              const SizedBox(height: 12),
+              _mainButton(
+                icon: Icons.list_alt_rounded,
+                text: 'Mis Reportes',
+                color: UserTheme.bgSurface,
+                textColor: UserTheme.textPrimary,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          MisReportesPage(usuarioId: widget.usuarioId),
+                    ),
+                  );
+                  _cargarReportesRecientes();
+                },
+              ),
+              const SizedBox(height: 12),
+              _mainButton(
+                icon: Icons.location_on_rounded,
+                text: 'Ver Mapa',
+                color: UserTheme.bgSurface,
+                textColor: UserTheme.textSecondary,
+                disabled: true,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                          'El mapa estará disponible próximamente'),
+                      backgroundColor: UserTheme.bgCard,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   );
                 },
               ),
-
-              // 🔴 PUNTO ROJO (puedes quitarlo si quieres)
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              )
-            ],
-          ),
-        ],
-      ),
-
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // 🔘 BOTONES PRINCIPALES
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              const SizedBox(height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _mainButton(
-                    icon: Icons.camera_alt,
-                    text: "Crear Reporte",
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CrearReportePage(
-                            usuarioId: usuarioId,
-                            nombreUsuario: nombreUsuario,
-                          ),
-                        ),
-                      );
-                    },
+                  const Text(
+                    'Reportes recientes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: UserTheme.textPrimary,
+                    ),
                   ),
-
-                  const SizedBox(height: 15),
-
-                  _mainButton(
-                    icon: Icons.list,
-                    text: "Ver Reportes",
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              MisReportesPage(usuarioId: usuarioId),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  _mainButton(
-                    icon: Icons.location_on,
-                    text: "Ver Mapa",
-                    onTap: () {
-                      // pendiente
-                    },
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            MisReportesPage(usuarioId: widget.usuarioId),
+                      ),
+                    ),
+                    child: const Text(
+                      'Ver todos',
+                      style: TextStyle(
+                          color: UserTheme.accentLight, fontSize: 13),
+                    ),
                   ),
                 ],
               ),
-            ),
-
-            // 📌 TITULO
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Reportes recientes",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // 🧾 EJEMPLOS (puedes luego traerlos del backend)
-            _reporteCard(
-              titulo: "Hueco en la vía",
-              ciudad: "Valledupar",
-              estado: "Pendiente",
-              color: Colors.red,
-              icon: Icons.warning,
-            ),
-
-            _reporteCard(
-              titulo: "Reductor dañado",
-              ciudad: "Valledupar",
-              estado: "En proceso",
-              color: Colors.orange,
-              icon: Icons.build,
-            ),
-
-            _reporteCard(
-              titulo: "Señalización caída",
-              ciudad: "Valledupar",
-              estado: "Solucionado",
-              color: Colors.green,
-              icon: Icons.check_circle,
-            ),
-
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 8),
+              if (_cargandoReportes)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(30),
+                    child:
+                        CircularProgressIndicator(color: UserTheme.accent),
+                  ),
+                )
+              else if (_reportesRecientes.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: UserTheme.bgCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: UserTheme.border),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(Icons.inbox_outlined,
+                          size: 48, color: UserTheme.textSecondary),
+                      SizedBox(height: 10),
+                      Text(
+                        'Aún no tienes reportes.\nPresiona "Crear Reporte" para empezar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: UserTheme.textSecondary, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ..._reportesRecientes.map((r) => _reporteCard(r)),
+            ],
+          ),
         ),
       ),
-
-      // 🔻 NAV BAR
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: const Color(0xFF2D6CDF),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.storage), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.location_on), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: UserTheme.bgCard,
+          border: Border(top: BorderSide(color: UserTheme.border)),
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: UserTheme.accent,
+          unselectedItemColor: UserTheme.textSecondary,
+          currentIndex: 0,
+          onTap: (i) {
+            if (i == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      MisReportesPage(usuarioId: widget.usuarioId),
+                ),
+              );
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.home_rounded), label: 'Inicio'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.storage_rounded), label: 'Reportes'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.location_on_rounded), label: 'Mapa'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded), label: 'Perfil'),
+          ],
+        ),
       ),
     );
   }
 
-  // 🔘 BOTONES GRANDES
   Widget _mainButton({
     required IconData icon,
     required String text,
     required VoidCallback onTap,
+    Color color = UserTheme.accent,
+    Color textColor = Colors.white,
+    bool disabled = false,
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        height: 60,
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF2D6CDF),
-          borderRadius: BorderRadius.circular(15),
+          color: disabled ? color.withOpacity(0.4) : color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: UserTheme.border),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 10),
+            Icon(icon,
+                color: disabled ? UserTheme.textSecondary : textColor,
+                size: 22),
+            const SizedBox(width: 14),
             Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(
+                color: disabled ? UserTheme.textSecondary : textColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            if (disabled) ...[
+              const SizedBox(width: 8),
+              const Text(
+                '(próximamente)',
+                style: TextStyle(
+                    color: UserTheme.textSecondary, fontSize: 11),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  // 🧾 CARD DE REPORTE
-  Widget _reporteCard({
-    required String titulo,
-    required String ciudad,
-    required String estado,
-    required Color color,
-    required IconData icon,
-  }) {
+  Widget _reporteCard(Reporte r) {
+    final color = UserTheme.colorEstado(r.estado);
+    final icono = UserTheme.iconEstado(r.estado);
+    final d = r.fecha.day.toString().padLeft(2, '0');
+    final mo = r.fecha.month.toString().padLeft(2, '0');
+    final fechaStr = '$d/$mo/${r.fecha.year}';
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: UserTheme.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-          )
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 3)),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 30),
-          const SizedBox(width: 15),
-
+          CircleAvatar(
+            backgroundColor: color.withOpacity(0.12),
+            child: Icon(icono, color: color, size: 22),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  titulo,
+                  r.descripcion,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: UserTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Text(
-                  ciudad,
-                  style: const TextStyle(color: Colors.grey),
+                  fechaStr,
+                  style: const TextStyle(
+                      color: UserTheme.textSecondary, fontSize: 12),
                 ),
               ],
             ),
           ),
-
           Container(
             padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withOpacity(0.3)),
             ),
             child: Text(
-              estado,
-              style: const TextStyle(color: Colors.white),
+              r.estado,
+              style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600),
             ),
-          )
+          ),
         ],
       ),
     );

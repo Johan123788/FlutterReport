@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class IaService {
   //final String baseUrl = "http://192.168.137.75:5148/api/Ia";
-   final String baseUrl = "https://localhost:7230/api/Ia";
+  final String baseUrl = "https://localhost:7230/api/Ia";
 
   Future<Map<String, dynamic>> analizarTexto(String descripcion) async {
     final url = Uri.parse("$baseUrl/analizarDescripcion");

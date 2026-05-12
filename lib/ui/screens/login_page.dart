@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ojociudadano/controllers/administrador/autoridad_login_controller.dart';
 import 'package:ojociudadano/controllers/login_controller.dart';
-import 'package:ojociudadano/ui/screens/Administrador/afinia/afinia_page.dart';
+
+import 'package:ojociudadano/ui/screens/Administrador/dashboard_page.dart';
 import 'package:ojociudadano/ui/screens/Usuario/inicio_page.dart';
 import 'package:ojociudadano/ui/screens/registro_page.dart';
 
@@ -20,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
       AutoridadLoginController();
 
   bool cargando = false;
+  bool _verPassword = false;
 
   void iniciarSesion() async {
     setState(() => cargando = true);
@@ -27,37 +29,32 @@ class _LoginPageState extends State<LoginPage> {
     final correo = correoController.text.trim();
     final password = passwordController.text.trim();
 
-    // 🔴 Validación básica
     if (correo.isEmpty || password.isEmpty) {
       setState(() => cargando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todos los campos")),
-      );
+      _snack("Completa todos los campos");
       return;
     }
 
     try {
-      // 🔹 1. Intentar login como autoridad
-      final autoridad =
-          await autoridadLoginController.login(correo, password);
+      // 1. Intentar login como autoridad
+      final autoridad = await autoridadLoginController.login(correo, password);
 
       if (!mounted) return;
 
       if (autoridad != null) {
-        // UNA SOLA PANTALLA PARA TODAS
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => ReportesAutoridadPage(
+            builder: (_) => AdminDashboardPage( // ✅ NAVEGA AL DASHBOARD
               autoridadId: autoridad.id,
-              titulo: autoridad.nombre, // dinámico
+              titulo: autoridad.nombre,
             ),
           ),
         );
         return;
       }
 
-      // 🔹 2. Usuario normal
+      // 2. Usuario normal
       final usuario = await loginController.login(correo, password);
 
       if (!mounted) return;
@@ -73,19 +70,24 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Correo o contraseña incorrectos"),
-          ),
-        );
+        _snack("Correo o contraseña incorrectos");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      _snack("Error: $e");
     }
 
     setState(() => cargando = false);
+  }
+
+  void _snack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: const Color(0xFF161B22),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -98,112 +100,236 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFF0D1117),
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
-            child: Column(
-              children: [
-                const Icon(Icons.location_city,
-                    size: 70, color: Color(0xFF2D6CDF)),
-
-                const SizedBox(height: 10),
-
-                const Text(
-                  "Report Valledupar",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            children: [
+              // ── Logo / ícono ──
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                child: const Icon(
+                  Icons.location_city_rounded,
+                  size: 36,
+                  color: Colors.white,
+                ),
+              ),
 
-                const SizedBox(height: 30),
+              const SizedBox(height: 16),
 
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: correoController,
-                        decoration: _input("Correo", Icons.email),
+              const Text(
+                "Ojo Ciudadano",
+                style: TextStyle(
+                  color: Color(0xFFF0F6FC),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              const Text(
+                "Valledupar · Reportes ciudadanos",
+                style: TextStyle(
+                  color: Color(0xFF8B949E),
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 36),
+
+              // ── Formulario ──
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161B22),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF30363D)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Iniciar sesión",
+                      style: TextStyle(
+                        color: Color(0xFFF0F6FC),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                       ),
+                    ),
 
-                      const SizedBox(height: 15),
+                    const SizedBox(height: 20),
 
-                      TextField(
-                        controller: passwordController,
-                        obscureText: true,
-                        decoration: _input("Contraseña", Icons.lock),
-                      ),
+                    // Correo
+                    _buildLabel("Correo electrónico"),
+                    const SizedBox(height: 6),
+                    _buildInput(
+                      controller: correoController,
+                      hint: "ejemplo@correo.com",
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
 
-                      const SizedBox(height: 25),
+                    const SizedBox(height: 16),
 
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: cargando ? null : iniciarSesion,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2D6CDF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: cargando
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const Text(
-                                  "Ingresar",
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                    // Contraseña
+                    _buildLabel("Contraseña"),
+                    const SizedBox(height: 6),
+                    _buildInput(
+                      controller: passwordController,
+                      hint: "••••••••",
+                      icon: Icons.lock_outline_rounded,
+                      obscure: !_verPassword,
+                      suffix: IconButton(
+                        icon: Icon(
+                          _verPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: const Color(0xFF8B949E),
+                          size: 20,
                         ),
+                        onPressed: () =>
+                            setState(() => _verPassword = !_verPassword),
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Botón ingresar
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: cargando ? null : iniciarSesion,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6),
+                          disabledBackgroundColor:
+                              const Color(0xFF3B82F6).withOpacity(0.4),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: cargando
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                "Ingresar",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
 
-                const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
+              // Registro
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "¿No tienes cuenta?",
+                    style: TextStyle(
+                      color: Color(0xFF8B949E),
+                      fontSize: 13,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const RegistroPage(),
+                          builder: (_) => const RegistroPage()),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF60A5FA),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                    ),
+                    child: const Text(
+                      "Regístrate",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  },
-                  child: const Text("¿No tienes cuenta? Regístrate"),
-                )
-              ],
-            ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  InputDecoration _input(String text, IconData icon) {
-    return InputDecoration(
-      hintText: text,
-      prefixIcon: Icon(icon),
-      filled: true,
-      fillColor: const Color(0xFFF9F9F9),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+  // ── Helpers de UI ──────────────────────────────────────────
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Color(0xFF8B949E),
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  Widget _buildInput({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscure = false,
+    Widget? suffix,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscure,
+      style: const TextStyle(color: Color(0xFFF0F6FC), fontSize: 14),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF484F58), fontSize: 14),
+        prefixIcon: Icon(icon, color: const Color(0xFF8B949E), size: 20),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: const Color(0xFF21262D),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF30363D)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF30363D)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+        ),
       ),
     );
   }

@@ -14,12 +14,10 @@ class ReportesAutoridadPage extends StatefulWidget {
   });
 
   @override
-  State<ReportesAutoridadPage> createState() =>
-      _ReportesAutoridadPageState();
+  State<ReportesAutoridadPage> createState() => _ReportesAutoridadPageState();
 }
 
-class _ReportesAutoridadPageState
-    extends State<ReportesAutoridadPage> {
+class _ReportesAutoridadPageState extends State<ReportesAutoridadPage> {
   final AutoridadController controller = AutoridadController();
   final ReporteController reporteController = ReporteController();
   late Future<List<Reporte>> futurosReportes;
@@ -31,8 +29,9 @@ class _ReportesAutoridadPageState
   }
 
   void recargar() {
-    futurosReportes =
-        controller.obtenerReportesPorAutoridad(widget.autoridadId);
+    futurosReportes = controller.obtenerReportesPorAutoridad(
+      widget.autoridadId,
+    );
   }
 
   @override
@@ -67,14 +66,12 @@ class _ReportesAutoridadPageState
     return FutureBuilder<List<Reporte>>(
       future: futurosReportes,
       builder: (context, snapshot) {
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
-          return const Center(
-              child: Text("Error al cargar"));
+          return const Center(child: Text("Error al cargar"));
         }
 
         final lista = (snapshot.data ?? [])
@@ -107,8 +104,7 @@ class _ReportesAutoridadPageState
                   const SizedBox(height: 8),
 
                   // 🖼 IMAGEN
-                  if (r.evidencia != null &&
-                      r.evidencia!.isNotEmpty)
+                  if (r.evidencia != null && r.evidencia!.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
@@ -124,8 +120,7 @@ class _ReportesAutoridadPageState
                   // 📌 ESTADO
                   Text(
                     "Estado: ${r.estado}",
-                    style:
-                        const TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                   ),
 
                   const SizedBox(height: 10),
@@ -140,7 +135,9 @@ class _ReportesAutoridadPageState
                           ),
                           onPressed: () async {
                             await reporteController.cambiarEstado(
-                                r.id!, "Aceptado");
+                              r.id!,
+                              "Aceptado",
+                            );
 
                             setState(() {
                               recargar();
@@ -157,7 +154,9 @@ class _ReportesAutoridadPageState
                           ),
                           onPressed: () async {
                             await reporteController.cambiarEstado(
-                                r.id!, "Rechazado");
+                              r.id!,
+                              "Rechazado",
+                            );
 
                             setState(() {
                               recargar();
@@ -166,7 +165,7 @@ class _ReportesAutoridadPageState
                           child: const Text("Rechazar"),
                         ),
                       ],
-                    )
+                    ),
                 ],
               ),
             );
@@ -185,10 +184,7 @@ class _ReportesAutoridadPageState
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
         ],
       ),
       child: child,
