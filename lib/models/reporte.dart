@@ -8,7 +8,7 @@ class Reporte {
   final String comentario;
   final String evidencia;
 
-  final int? usuarioId; // ← ID del ciudadano que reportó
+  final int? usuarioId; // ID del ciudadano que reportó
   final Categoria? categoria;
   final Autoridad? autoridadResponsable;
 

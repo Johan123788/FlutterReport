@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16),
 
               const Text(
-                "Ojo Ciudadano",
+                "Report Valledupar",
                 style: TextStyle(
                   color: Color(0xFFF0F6FC),
                   fontSize: 24,

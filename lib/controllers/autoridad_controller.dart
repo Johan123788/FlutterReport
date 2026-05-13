@@ -1,5 +1,4 @@
 import 'package:ojociudadano/models/autoridad.dart';
-import 'package:ojociudadano/models/afinia.dart';
 import 'package:ojociudadano/models/reporte.dart';
 import 'package:ojociudadano/services/administrador/autoridad_service.dart';
 

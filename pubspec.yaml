@@ -12,11 +12,32 @@ dependencies:
   http: ^1.6.0
   image_picker: ^1.1.2
   geolocator: ^12.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.3.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/reportes.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icon/reportes.png"
+
+
+  windows:
+    generate: true
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/icon/logo.png
+  android: true
+  ios: true
+  web: true
 
 flutter:
   uses-material-design: true
