@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ojociudadano/controllers/autoridad_controller.dart';
 import 'package:ojociudadano/models/reporte.dart';
+import 'package:ojociudadano/ui/Widget/Admin%20Widget/Metric_Card.dart';
 import 'package:ojociudadano/ui/screens/Administrador/admin_theme.dart';
 import 'package:ojociudadano/ui/screens/Administrador/reportes_autoridad_page.dart';
 import 'package:ojociudadano/ui/screens/login_page.dart';
@@ -322,7 +323,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }) {
     return Column(
       children: [
-        _metricCard(
+        MetricCard    (
           label: 'Total de reportes',
           value: total.toString(),
           icon: Icons.bar_chart_rounded,
@@ -333,16 +334,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
         Row(
           children: [
             Expanded(
-              child: _metricCard(
+              child: MetricCard(
                 label: 'Pendientes',
                 value: pendientes.toString(),
                 icon: Icons.pending_rounded,
                 color: AdminTheme.warning,
+                wide: false,      
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _metricCard(
+              child: MetricCard (
                 label: 'Aceptados',
                 value: aceptados.toString(),
                 icon: Icons.check_circle_rounded,
@@ -351,7 +353,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _metricCard(
+              child: MetricCard(
                 label: 'Rechazados',
                 value: rechazados.toString(),
                 icon: Icons.cancel_rounded,
@@ -361,82 +363,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           ],
         ),
       ],
-    );
-  }
-
-  Widget _metricCard({
-    required String label,
-    required String value,
-    required IconData icon,
-    required Color color,
-    bool wide = false,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: wide ? 20 : 16,
-      ),
-      decoration: BoxDecoration(
-        color: AdminTheme.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.25), width: 1),
-      ),
-      child: wide
-          ? Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: AdminTheme.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(height: 8),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AdminTheme.textSecondary,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
     );
   }
 

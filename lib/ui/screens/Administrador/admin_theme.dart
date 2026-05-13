@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-// ═══════════════════════════════════════════════
+// 
 //  OJO CIUDADANO — ADMIN DESIGN SYSTEM
-// ═══════════════════════════════════════════════
+// 
 
 class AdminTheme {
   // ── Colores principales ──
